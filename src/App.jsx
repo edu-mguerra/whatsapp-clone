@@ -20,6 +20,11 @@ export default () => {
     { chatId: 4, title: "Eduardo", image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyyYZ2N2uQrOktRkIsi1ZS0NBnq5VVXlpAw&s' }
   ])
 
+  const [user, setUser] = useState({
+    id: 1234,
+    avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyyYZ2N2uQrOktRkIsi1ZS0NBnq5VVXlpAw&s',
+    name: 'Eduardo Guerraa'
+  })
   const [activeChat, setActiveChat] = useState({})
 
 
@@ -30,7 +35,7 @@ export default () => {
 
         <header>
 
-          <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyyYZ2N2uQrOktRkIsi1ZS0NBnq5VVXlpAw&s' alt='Avatar' className='header-avatar' />
+          <img src={user.avatar} alt='Avatar' className='header-avatar' />
 
 
           <div className='header-buttons'>
@@ -77,7 +82,9 @@ export default () => {
       <div className='content-area'>
 
         {activeChat.chatId !== undefined &&
-          <ChatWindow />
+          <ChatWindow
+            user={user}
+          />
         }
         {activeChat.chatId === undefined &&
 
