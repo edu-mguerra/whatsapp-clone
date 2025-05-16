@@ -11,8 +11,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
 import AddReactionIcon from '@mui/icons-material/AddReaction';
+import Api from '../../Api';
 
-export default function ChatWindow({ user }) {
+
+export default function ChatWindow({ user, data }) {
 
   const body = useRef()
 
@@ -26,53 +28,22 @@ export default function ChatWindow({ user }) {
   const [emojiOpen, setEmojiOpen] = useState(false)
   const [text, setText] = useState('')
   const [listening, setListening] = useState(false)
-  const [list, setList] = useState([
-    { author: 123, body: 'Oi, tudo bem?' },
-    { author: 1234, body: 'Oi! Tudo sim, e com você?' },
-    { author: 123, body: 'Também estou bem. Como foi seu fim de semana?' },
-    { author: 1234, body: 'Foi tranquilo. Saí um pouco no sábado e fiquei em casa no domingo. E o seu?' },
-    { author: 123, body: 'Fui visitar meus pais. A gente fez um churrasco, foi bem legal.' },
-    { author: 1234, body: 'Que delícia! Faz tempo que não como um bom churrasco.' },
-    { author: 123, body: 'Pois é, estava com saudade disso também.' },
-    { author: 1234, body: 'Você ainda está trabalhando naquele projeto da empresa?' },
-    { author: 123, body: 'Sim! Estamos na reta final, mas ainda tem muita coisa pra ajustar.' },
-    { author: 1234, body: 'Imagino! Esses momentos finais sempre dão mais trabalho.' },
-    { author: 123, body: 'Verdade. Mas estou confiante de que vai dar tudo certo.' },
-    { author: 1234, body: 'Se precisar de ajuda com alguma coisa, me avisa.' },
-    { author: 123, body: 'Obrigado! Vou lembrar disso sim.' },
-    { author: 1234, body: 'Aliás, lembra daquela viagem que a gente estava planejando?' },
-    { author: 123, body: 'Claro! Já pensou em alguma data?' },
-    { author: 1234, body: 'Estava pensando no feriado do mês que vem. O que acha?' },
-    { author: 123, body: 'Boa! Dá pra emendar com o fim de semana.' },
-    { author: 1234, body: 'Exato! Aí conseguimos aproveitar mais.' },
-    { author: 123, body: 'Tem algum destino em mente?' },
-    { author: 1234, body: 'Pensei em ir pra serra. Um lugar mais tranquilo, natureza, lareira...' },
-    { author: 123, body: 'Adorei a ideia! Um friozinho agora ia cair bem.' },
-    { author: 1234, body: 'Então vou pesquisar alguns lugares e te mando.' },
-    { author: 123, body: 'Fechado. Já estou animado.' },
-    { author: 1234, body: 'Eu também! Vai ser ótimo dar uma desligada.' },
-    { author: 123, body: 'Total. E com boa companhia, melhor ainda.' },
-    { author: 1234, body: 'Haha! Concordo plenamente.' },
-    { author: 123, body: 'Aliás, você viu a nova série da Netflix?' },
-    { author: 1234, body: 'Vi sim! Assisti os três primeiros episódios ontem.' },
-    { author: 123, body: 'E aí, o que achou?' },
-    { author: 1234, body: 'Achei bem interessante. Meio lenta no começo, mas depois engrena.' },
-    { author: 123, body: 'Boa! Vou começar hoje à noite, então.' },
-    { author: 1234, body: 'Depois me conta o que achou.' },
-    { author: 123, body: 'Combinado! Valeu pela dica.' },
-    { author: 1234, body: 'Imagina! Gosto de trocar essas sugestões com você.' },
-    { author: 123, body: 'A gente tem um gosto parecido, né?' },
-    { author: 1234, body: 'Pois é! Acho que é por isso que sempre dá certo.' },
-    { author: 123, body: 'Bom, preciso voltar aqui pro trabalho. Depois a gente continua esse papo!' },
-    { author: 1234, body: 'Beleza! Boa sorte aí e até mais tarde :)' },
-    { author: 123, body: 'Obrigado! Até mais :)' }
-  ])
+  const [list, setList] = useState([])
+  const [users, setUsers] = useState([])
 
   useEffect(() => {
     if (body.current.scrollHeight > body.current.offsetHeight) {
       body.current.scrollTop = body.current.scrollHeight - body.current.offsetHeight
     }
   }, [list])
+
+
+  useEffect(() => {
+    setList([])
+    let unsub = Api.onChatContent(data.chatId, setList, setUsers)
+    return unsub
+
+  }, [data.chatId])
 
 
 
@@ -116,8 +87,20 @@ export default function ChatWindow({ user }) {
 
   }
 
+  const hadleKeyUp = (e) => {
+    if (e.keyCode == 13) {
+
+      handleSendClik()
+    }
+  }
+
   const handleSendClik = () => {
 
+    if (text !== '') {
+      Api.sendMessage(data, user.id, 'text', text, users)
+      setText('')
+      setEmojiOpen(false)
+    }
 
 
   }
@@ -129,8 +112,8 @@ export default function ChatWindow({ user }) {
       <div className='chatWindow--header'>
 
         <div className='chatWindow-headerinfo'>
-          <img className='chatWindow-avatar' src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyyYZ2N2uQrOktRkIsi1ZS0NBnq5VVXlpAw&s' alt='' />
-          <div className='chatWindow-name'>Eduardo Guerra</div>
+          <img className='chatWindow-avatar' src={data.image} alt='' />
+          <div className='chatWindow-name'>{data.title}</div>
         </div>
 
         <div className='chatWindow-headerbuttons'>
@@ -198,6 +181,7 @@ export default function ChatWindow({ user }) {
             placeholder='Digite uma mensagem'
             value={text}
             onChange={e => setText(e.target.value)}
+            onKeyUp={hadleKeyUp}
           />
 
         </div>

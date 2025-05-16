@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './App.css'
 
 import DonutLargeIcon from '@mui/icons-material/DonutLarge';
@@ -8,31 +8,66 @@ import SearchIcon from '@mui/icons-material/Search';
 import ChatList from './components/chatListItem/chatListItem';
 import ChatIntro from './components/chatIntro/chatIntro';
 import ChatWindow from './components/ChatWindow/ChatWindow'
+import NewChat from './components/newChat/newChat';
+import Login from './components/login/login';
+import Api from './Api';
 
 
 
 export default () => {
 
-  const [chatList, setChatList] = useState([
-    { chatId: 1, title: "Eduardo", image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyyYZ2N2uQrOktRkIsi1ZS0NBnq5VVXlpAw&s' },
-    { chatId: 2, title: "Eduardo", image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyyYZ2N2uQrOktRkIsi1ZS0NBnq5VVXlpAw&s' },
-    { chatId: 3, title: "Eduardo", image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyyYZ2N2uQrOktRkIsi1ZS0NBnq5VVXlpAw&s' },
-    { chatId: 4, title: "Eduardo", image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyyYZ2N2uQrOktRkIsi1ZS0NBnq5VVXlpAw&s' }
-  ])
+  const [chatList, setChatList] = useState([])
 
-  const [user, setUser] = useState({
-    id: 1234,
-    avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyyYZ2N2uQrOktRkIsi1ZS0NBnq5VVXlpAw&s',
-    name: 'Eduardo Guerraa'
-  })
+  const [user, setUser] = useState(null)
   const [activeChat, setActiveChat] = useState({})
+  const [showNewChat, setShowNewChat] = useState(false)
 
+  useEffect(() => {
+    if (user !== null) {
+      let unsub = Api.onChatList(user.id, setChatList)
+      return unsub
+    }
+  }, [user])
+
+
+  const AddNewChat = () => {
+    setShowNewChat(true)
+  }
+
+  const logindata = async (u) => {
+    let newUser = {
+      id: u.uid,
+      name: u.displayName,
+      avatar: u.photoURL
+    };
+
+    try {
+      await Api.addUsers(newUser)
+      setUser(newUser)
+
+    } catch (error) {
+      console.log('erro')
+    }
+
+
+  }
+
+  if (user === null) {
+    return (<Login onReceive={logindata} />)
+  }
 
   return (
     <div className='app-window'>
       <div className='green'></div>
       <div className='sidebar'>
 
+
+        <NewChat
+          chatList={chatList}
+          user={user}
+          show={showNewChat}
+          setShow={setShowNewChat}
+        />
         <header>
 
           <img src={user.avatar} alt='Avatar' className='header-avatar' />
@@ -45,7 +80,9 @@ export default () => {
               <DonutLargeIcon style={{ color: "#919191" }} />
             </div>
 
-            <div className='header-btn'>
+            <div className='header-btn'
+              onClick={AddNewChat}
+            >
               <ChatIcon style={{ color: "#919191" }} />
             </div>
 
@@ -65,7 +102,7 @@ export default () => {
         </div>
 
         <div className='chatlist'>
-          {chatList.map((item, key) => (
+          {(chatList || []).map((item, key) => (
             <ChatList
               key={key}
               data={item}
@@ -83,6 +120,7 @@ export default () => {
 
         {activeChat.chatId !== undefined &&
           <ChatWindow
+            data={activeChat}
             user={user}
           />
         }
